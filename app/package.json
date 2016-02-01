@@ -1,0 +1,29 @@
+{
+  "name": "electron-spotify",
+  "version": "0.0.1",
+  "description": "Desktop app for Spotify Web client",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron main.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/safl/electron-spotify.git"
+  },
+  "keywords": [
+    "Electron",
+    "Spotify",
+    "Adobe Fash",
+    "webview",
+    "tray"
+  ],
+  "author": "Simon A. F. Lund",
+  "license": "CC0-1.0",
+  "bugs": {
+    "url": "https://github.com/safl/electron-spotify/issues"
+  },
+  "homepage": "https://github.com/atom/electron-quick-start#readme",
+  "devDependencies": {
+    "electron-prebuilt": "^0.36.0"
+  }
+}
