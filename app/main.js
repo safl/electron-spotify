@@ -45,11 +45,10 @@ function createMainWindow () {
             submenu: [
                 {   label: 'Open Url from Clipboard',
                     accelerator: 'CmdOrCtrl+O',
-                    
-                    click: function() {
+                    click: function(item, focusedWindow) {
                         var paste = clipboard.readText();
                         if (isPrefixed(paste, spotifyUrl)) {
-                            mainWindow.loadURL(paste);
+                            focusedWindow.loadURL(paste);
                         }
                     }
                 },
