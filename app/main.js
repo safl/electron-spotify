@@ -12,6 +12,9 @@ let appIcon = null;
 let remain = true;
 let spotifyUrl = 'https://play.spotify.com';
 
+function isOSX() {
+    return process.platform === 'darwin';
+}
 const BrowserWindow = electron.BrowserWindow;   // Module to create native browser window.
 
 let mainWindow;                                 // Avoid GC of window object
@@ -66,13 +69,7 @@ function createMainWindow () {
                     }
                 },
                 {   label: 'Toggle Full Screen',
-                    accelerator: (function() {
-                        if (process.platform == 'darwin') {
-                            return 'Ctrl+Command+F';
-                        } else {
-                            return 'F11';
-                        }
-                    })(),
+                    accelerator: isOSX() ? 'Ctrl+Command+F' : 'F11',
                     click: function(item, focusedWindow) {
                         if (focusedWindow) {
                             focusedWindow.setFullScreen(!focusedWindow.isFullScreen());
@@ -80,13 +77,7 @@ function createMainWindow () {
                     }
                 },
                 {   label: 'Toggle Developer Tools',
-                    accelerator: (function() {
-                        if (process.platform == 'darwin') {
-                            return 'Alt+Command+I';
-                        } else {
-                            return 'Ctrl+Shift+I';
-                        }
-                    })(),
+                    accelerator: isOSX() ? 'Alt+Command+I' : 'Ctrl+Shift+I',
                     click: function(item, focusedWindow) {
                         if (focusedWindow) {
                             focusedWindow.toggleDevTools();
@@ -138,7 +129,7 @@ app.on('ready', function() {
 });
 
 app.on('window-all-closed', function () {   // Quit when all windows are closed.
-    if (process.platform !== 'darwin') {    // Except on OS X
+    if (!isOSX()) {                         // Except on OSX
         app.quit();
     }
 });
