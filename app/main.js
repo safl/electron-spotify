@@ -8,16 +8,20 @@ const Menu = electron.Menu;             // Instantite menus
 const Tray = electron.Tray;             // Controll system tray
 const shell = electron.shell;           // Open external browsers etc.
 
+const BrowserWindow = electron.BrowserWindow;   // Module to create native browser window.
+const spotifyUrl = 'https://play.spotify.com';
+
+let mainWindow;                                 // Avoid GC of mainWindow, appIcon, and remain.
 let appIcon = null;
 let remain = true;
-let spotifyUrl = 'https://play.spotify.com';
 
 function isOSX() {
     return process.platform === 'darwin';
 }
-const BrowserWindow = electron.BrowserWindow;   // Module to create native browser window.
 
-let mainWindow;                                 // Avoid GC of window object
+function isPrefixed(subject, prefix) {
+    return subject.slice(0, prefix.length)===prefix;
+}
 
 function createMainWindow () {
     
@@ -33,7 +37,7 @@ function createMainWindow () {
             mainWindow.hide();
         }
     });
-    mainWindow.on('closed', function() {        // When actually closed (remain==false)
+    mainWindow.on('closed', function() {        // When actually closed (remain===false)
         mainWindow = null;
     });
     var menu = Menu.buildFromTemplate([
@@ -44,8 +48,8 @@ function createMainWindow () {
                     
                     click: function() {
                         var paste = clipboard.readText();
-                        if (paste.slice(0, spotifyUrl.length)==spotifyUrl) {
-                            var res = mainWindow.loadURL(paste);
+                        if (isPrefixed(paste, spotifyUrl)) {
+                            mainWindow.loadURL(paste);
                         }
                     }
                 },
@@ -119,7 +123,6 @@ app.on('ready', function() {
     appIcon.setContextMenu(contextMenu);
     appIcon.setToolTip('All right stop, collaborate and listen...');
     appIcon.on('click', function(evt) {
-        mainWindow
         if (mainWindow.isVisible()) {
             mainWindow.hide();
         } else {
@@ -135,7 +138,7 @@ app.on('window-all-closed', function () {   // Quit when all windows are closed.
 });
 
 app.on('activate', function () {
-    if (mainWindow === null) {  // OS X
+    if (mainWindow === null) {              // OSX re-actives
         createMainWindow();
     }
 });
