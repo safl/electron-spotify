@@ -13,16 +13,19 @@
   "keywords": [
     "Electron",
     "Spotify",
-    "Adobe Fash",
+    "Adobe Flash",
     "webview",
-    "tray"
+    "tray",
+	"menu",
+	"clipboard",
+	"shell"
   ],
   "author": "Simon A. F. Lund",
   "license": "CC0-1.0",
   "bugs": {
     "url": "https://github.com/safl/electron-spotify/issues"
   },
-  "homepage": "https://github.com/atom/electron-quick-start#readme",
+  "homepage": "https://github.com/safl/electron-spotify#readme",
   "devDependencies": {
     "electron-prebuilt": "^0.36.0"
   }
