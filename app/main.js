@@ -104,8 +104,6 @@ function createMainWindow () {
     ]);
     Menu.setApplicationMenu(menu);          // Use the tray-menu instead of window-menu
     mainWindow.loadURL(spotifyUrl);
-    mainWindow.webContents.openDevTools();  // Won't start rendering...
-    mainWindow.webContents.closeDevTools(); // ... unless this is done.
 }
 
 app.on('ready', function() {
