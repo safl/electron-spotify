@@ -52,6 +52,16 @@ function createMainWindow () {
                         }
                     }
                 },
+                {   label: 'Close Window',
+                    accelerator: 'CmdOrCtrl+W',
+                    click: function() {
+                        if (mainWindow.isVisible()) {
+                            mainWindow.hide();
+                        } else {
+                            mainWindow.show();
+                        }
+                    }
+                },
                 {   label: 'Quit',
                     accelerator: 'CmdOrCtrl+Q',
                     click: function() {
@@ -109,8 +119,23 @@ app.on('ready', function() {
     createMainWindow();
     appIcon = new Tray(__dirname+'/icon128.png');
     var contextMenu = Menu.buildFromTemplate([
+        {   label: 'Current Playing'    },
+        {   type: 'separator'   },
+        {   label: 'Play/Pause'},
+        {   label: 'Prev'},
+        {   label: 'Next'},
+        {   type: 'separator' },
+        {   label: 'Toggle Window',
+            click: function() {
+                if (mainWindow.isVisible()) {
+                    mainWindow.hide();
+                } else {
+                    mainWindow.show();
+                }
+            }
+        },
+        {   type: 'separator' },
         {   label: 'Quit',
-            accelerator: 'CmdOrCtrl+q',
             click: function() {
                 remain = false;
                 app.quit();
