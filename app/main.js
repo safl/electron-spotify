@@ -7,9 +7,10 @@ const app = electron.app;               // Control application life
 const Menu = electron.Menu;             // Instantite menus
 const Tray = electron.Tray;             // Controll system tray
 const shell = electron.shell;           // Open external browsers etc.
+const ipcMain = electron.ipcMain;           // Communication with Spotify webview
 
 const BrowserWindow = electron.BrowserWindow;   // Module to create native browser window.
-const spotifyUrl = 'https://play.spotify.com';
+const defaultUrl = 'https://play.spotify.com/';
 
 let mainWindow;                                 // Avoid GC of mainWindow, appIcon, and remain.
 let appIcon = null;
@@ -28,7 +29,8 @@ function createMainWindow () {
     mainWindow = new BrowserWindow({             // Instantiate the browser window.
         width: 1024,
         height: 768,
-        'web-preferences': {'plugins': true}
+        'web-preferences': {'plugins': true},
+        preload: __dirname+'/preload.js'
     }); 
 
     mainWindow.on('close', function(evt) {      // When closing, hide it instead
@@ -47,7 +49,7 @@ function createMainWindow () {
                     accelerator: 'CmdOrCtrl+O',
                     click: function(item, focusedWindow) {
                         var paste = clipboard.readText();
-                        if (isPrefixed(paste, spotifyUrl)) {
+                        if (isPrefixed(paste, defaultUrl)) {
                             focusedWindow.loadURL(paste);
                         }
                     }
@@ -112,8 +114,18 @@ function createMainWindow () {
         }
     ]);
     Menu.setApplicationMenu(menu);          // Use the tray-menu instead of window-menu
-    mainWindow.loadURL(spotifyUrl);
+    mainWindow.loadURL(defaultUrl);
+
+    mainWindow.webContents.on("did-stop-loading", function() {
+        setInterval(function() {
+            mainWindow.webContents.send('player-status');
+        }, 5000);
+    });
 }
+
+ipcMain.on('player-status', function(event, arg) {
+    console.log(arg);
+});
 
 app.on('ready', function() {
     createMainWindow();
@@ -121,9 +133,31 @@ app.on('ready', function() {
     var contextMenu = Menu.buildFromTemplate([
         {   label: 'Current Playing'    },
         {   type: 'separator'   },
-        {   label: 'Play/Pause'},
-        {   label: 'Prev'},
-        {   label: 'Next'},
+        {   label: 'Play/Pause',
+            click: function() {
+                mainWindow.webContents.send('player-play-toggle');
+            }
+        },
+        {   label: 'Prev',
+            click: function() {
+                mainWindow.webContents.send('player-previous');
+            }
+        },
+        {   label: 'Next',
+            click: function() {
+                mainWindow.webContents.send('player-next');
+            }
+        },
+        {   label: 'Repeat',
+            click: function() {
+                mainWindow.webContents.send('player-repeat');
+            }
+        },
+        {   label: 'Shuffle',
+            click: function() {
+                mainWindow.webContents.send('player-shuffle');
+            }
+        },
         {   type: 'separator' },
         {   label: 'Toggle Window',
             click: function() {
@@ -144,13 +178,13 @@ app.on('ready', function() {
     ]);
     appIcon.setContextMenu(contextMenu);
     appIcon.setToolTip('All right stop, collaborate and listen...');
-    appIcon.on('click', function(evt) {
+    appIcon.on('click', function(event) {
         if (mainWindow.isVisible()) {
             mainWindow.hide();
         } else {
             mainWindow.show();
         }
-    })
+    });
 });
 
 app.on('window-all-closed', function () {   // Quit when all windows are closed.
