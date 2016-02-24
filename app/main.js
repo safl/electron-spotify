@@ -15,6 +15,8 @@ const defaultUrl = 'https://play.spotify.com/';
 let mainWindow;                                 // Avoid GC of mainWindow, appIcon, and remain.
 let appIcon = null;
 let remain = true;
+let playerStatus = null;
+let pollingPlayerStatus = false;
 
 function isOSX() {
     return process.platform === 'darwin';
@@ -25,23 +27,7 @@ function isPrefixed(subject, prefix) {
 }
 
 function createMainWindow () {
-    
-    mainWindow = new BrowserWindow({             // Instantiate the browser window.
-        width: 1024,
-        height: 768,
-        'web-preferences': {'plugins': true},
-        preload: __dirname+'/preload.js'
-    }); 
 
-    mainWindow.on('close', function(evt) {      // When closing, hide it instead
-        if (remain) {
-            evt.preventDefault();
-            mainWindow.hide();
-        }
-    });
-    mainWindow.on('closed', function() {        // When actually closed (remain===false)
-        mainWindow = null;
-    });
     var menu = Menu.buildFromTemplate([
         {   label: 'File',
             submenu: [
@@ -113,26 +99,68 @@ function createMainWindow () {
             ]
         }
     ]);
-    Menu.setApplicationMenu(menu);          // Use the tray-menu instead of window-menu
+    Menu.setApplicationMenu(menu);
+    
+    mainWindow = new BrowserWindow({             // Instantiate the browser window.
+        width: 1024,
+        height: 768,
+        'web-preferences': {'plugins': true},
+        preload: __dirname+'/preload.js'
+    }); 
+
+    mainWindow.on('close', function(evt) {      // When closing, hide it instead
+        if (remain) {
+            evt.preventDefault();
+            mainWindow.hide();
+        }
+    });
+    mainWindow.on('closed', function() {        // When actually closed (remain===false)
+        mainWindow = null;
+    });
+
     mainWindow.loadURL(defaultUrl);
 
     mainWindow.webContents.on("did-stop-loading", function() {
-        setInterval(function() {
-            mainWindow.webContents.send('player-status');
-        }, 5000);
+        if (!pollingPlayerStatus) {
+            pollingPlayerStatus = true;
+            setInterval(function() {
+                mainWindow.webContents.send('player-status');
+            }, 1000);
+        }
     });
+};
+
+/*
+    Accesses global var: playerStatus and appIcon
+*/
+function updateAppIconTooltip() {
+    if ((playerStatus === null) || 
+        (appIcon === null) || 
+        (playerStatus["track"]["name"] == "Unknown Track")) {
+        return;
+    }
+    var artists = playerStatus["track"]["artists"];
+
+    var tip = playerStatus["track"]["name"];    // Track name
+    tip += " - ";                               // Artist
+    for(var i=0; i<artists.length; ++i) {
+        tip += artists[i];
+        if (i<artists.length-2) {
+            tip += ", ";
+        }
+    }                                           // Progress
+    tip += " - " +
+            String(playerStatus["track"]["current"]["min"]) + ":" +
+            String(playerStatus["track"]["current"]["sec"]) + " / "+
+            String(playerStatus["track"]["length"]["min"])  + ":" +
+            String(playerStatus["track"]["length"]["sec"]);
+
+    appIcon.setToolTip(tip);
 }
 
-ipcMain.on('player-status', function(event, arg) {
-    console.log(arg);
-});
-
-app.on('ready', function() {
-    createMainWindow();
+function createAppIcon() {
     appIcon = new Tray(__dirname+'/icon128.png');
     var contextMenu = Menu.buildFromTemplate([
-        {   label: 'Current Playing'    },
-        {   type: 'separator'   },
         {   label: 'Play/Pause',
             click: function() {
                 mainWindow.webContents.send('player-play-toggle');
@@ -146,16 +174,6 @@ app.on('ready', function() {
         {   label: 'Next',
             click: function() {
                 mainWindow.webContents.send('player-next');
-            }
-        },
-        {   label: 'Repeat',
-            click: function() {
-                mainWindow.webContents.send('player-repeat');
-            }
-        },
-        {   label: 'Shuffle',
-            click: function() {
-                mainWindow.webContents.send('player-shuffle');
             }
         },
         {   type: 'separator' },
@@ -185,6 +203,16 @@ app.on('ready', function() {
             mainWindow.show();
         }
     });
+};
+
+ipcMain.on('player-status', function(event, arg) {
+    playerStatus = arg;
+    updateAppIconTooltip();
+});
+
+app.on('ready', function() {
+    createMainWindow();
+    createAppIcon();
 });
 
 app.on('window-all-closed', function () {   // Quit when all windows are closed.

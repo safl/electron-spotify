@@ -13,44 +13,16 @@ function eventFire(el, etype){
 function getPlayerDom() {
     var playerDom = document.getElementById("app-player").contentWindow.document;
     return playerDom;
-}
+};
 
-ipcRenderer.on('player-play-toggle', function(args) {
-    eventFire(getPlayerDom().getElementById("play-pause"), "click");
-});
-
-ipcRenderer.on('player-previous', function(args) {
-
-    // This should first check current position and check
-    // whether two clicks are needed
-
-    // We fire it twice since the "prev" rewinds the track
-    eventFire(getPlayerDom().getElementById("previous"), "click");
-    setTimeout(function() {
-        eventFire(getPlayerDom().getElementById("previous"), "click");
-    }, 500);
-});
-
-ipcRenderer.on('player-next', function(args) {
-    eventFire(getPlayerDom().getElementById("next"), "click");
-});
-
-ipcRenderer.on('player-repeat', function(args) {
-    eventFire(getPlayerDom().getElementById("repeat"), "click");
-});
-
-ipcRenderer.on('player-shuffle', function(args) {
-    eventFire(getPlayerDom().getElementById("shuffle"), "click");
-});
-
-ipcRenderer.on('player-status', function(event, args) {
+function getPlayerStatus() {
 
     var player = {
         "track": {
             "name": "Unknown Track",
             "artists": ["Unknown Artist(s)"],
-            "current": "0:00",
-            "length": "0:00"
+            "current": {"min": 0, "sec":0},
+            "length": {"min": 0, "sec":0}
         },
         "isPlaying": false,
         "isShuffling": false,
@@ -74,12 +46,54 @@ ipcRenderer.on('player-status', function(event, args) {
         }
     }
 
-    player["track"]["current"] = playerDom.getElementById("track-current").innerHTML;
-    player["track"]["length"] = playerDom.getElementById("track-length").innerHTML;
+    var trackCurrentMinSec = playerDom.getElementById("track-current").innerHTML.trim().trim().split(":");
+    if (trackCurrentMinSec.length==2) {
+        player["track"]["current"]["min"] = parseInt(trackCurrentMinSec[0]);
+        player["track"]["current"]["sec"] = parseInt(trackCurrentMinSec[1]);
+    }
+
+    var trackLengthMinSec = playerDom.getElementById("track-length").innerHTML.trim().trim().split(":");
+    if (trackLengthMinSec.length==2) {
+        player["track"]["length"]["min"] = parseInt(trackLengthMinSec[0]);
+        player["track"]["length"]["sec"] = parseInt(trackLengthMinSec[1]);
+    }
+    
+    var trackLengthText = playerDom.getElementById("track-length").innerHTML.trim();
     player["isPlaying"] = playerDom.getElementById("play-pause").classList.contains("playing");
     player["isShuffling"] = playerDom.getElementById("shuffle").classList.contains("active");
     player["isRepeating"] = playerDom.getElementById("repeat").classList.contains("active");
 
-    // Now send it back
-    ipcRenderer.send('player-status', player);
+    return player;
+};
+
+ipcRenderer.on('player-play-toggle', function(args) {
+    eventFire(getPlayerDom().getElementById("play-pause"), "click");
+});
+
+ipcRenderer.on('player-previous', function(args) {
+
+    var player = getPlayerStatus();
+    eventFire(getPlayerDom().getElementById("previous"), "click");
+    // This is an attempt to avoid "rewinding" and actually go to previous track
+    if ((player["track"]["current"]["min"] === 0) && (player["track"]["current"]["sec"] > 3)) {
+        setTimeout(function() {
+            eventFire(getPlayerDom().getElementById("previous"), "click");
+        }, 500);
+    }
+});
+
+ipcRenderer.on('player-next', function(args) {
+    eventFire(getPlayerDom().getElementById("next"), "click");
+});
+
+ipcRenderer.on('player-repeat', function(args) {
+    eventFire(getPlayerDom().getElementById("repeat"), "click");
+});
+
+ipcRenderer.on('player-shuffle', function(args) {
+    eventFire(getPlayerDom().getElementById("shuffle"), "click");
+});
+
+ipcRenderer.on('player-status', function(event, args) {
+    ipcRenderer.send('player-status', getPlayerStatus());
 });
