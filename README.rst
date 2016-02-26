@@ -10,6 +10,10 @@ Install
 Electron
 ~~~~~~~~
 
+On buntu these packages suffice::
+
+  sudo apt-get install npm nodejs nodejs-legacy
+
 You probably need to do more than this... but here goes::
 
   echo "prefix = ${HOME}/.local" > $HOME/.npmrc
@@ -25,7 +29,7 @@ Grab the source and run::
   git clone https://github.com/safl/electron-spotify
   electron electron-spotify/app --ppapi-flash-path=${PPAPI_FLASH_PATH} --ppapi-flash-version=${PPAPI_FLASH_VERSION}
 
-Replace ``${PPAPI_FLASH_PATH}`` and ``${PPAPI_FLASH_VERSION}`` with the path and version of your `Pepperflash <https://github.com/atom/electron/blob/master/docs/tutorial/using-pepper-flash-plugin.md>`_ plugin.
+Replace ``${PPAPI_FLASH_PATH}`` and ``${PPAPI_FLASH_VERSION}`` with the path and version of your `Pepperflash <https://github.com/atom/electron/blob/master/docs/tutorial/using-pepper-flash-plugin.md>`_ plugin. Open ``chrome://plugins`` with Chrome, click ``+ Details``, then you can see the path and version of the currently installed PepperFlash.
 
 Third Party
 ===========

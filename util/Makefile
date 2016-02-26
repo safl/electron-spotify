@@ -1,5 +1,5 @@
-PPAPI_FLASH_PATH="${HOME}/.config/google-chrome/PepperFlash/20.0.0.286/libpepflashplayer.so"
-PPAPI_FLASH_VERSION="20.0.0.286"
+PPAPI_FLASH_PATH="/usr/lib/pepperflashplugin-nonfree/libpepflashplayer.so"
+PPAPI_FLASH_VERSION="20.0.0.306"
 
 all: deploy
 
